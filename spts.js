@@ -846,27 +846,6 @@
                         <input type="checkbox" id="sptsWidgetToggle" checked>
                         <label for="sptsWidgetToggle">Show developer widget</label>
                     </div>
-                    <div class="spts-widget-choice" id="sptsWidgetChoice">
-                        <div class="spts-widget-choice-title">Choose what happens to the developer widget</div>
-                        <select class="spts-widget-duration" id="sptsWidgetDuration" aria-label="Hide duration">
-                            <option value="300000">Hide for 5 minutes</option>
-                            <option value="1800000">Hide for 30 minutes</option>
-                            <option value="3600000">Hide for 1 hour</option>
-                            <option value="21600000">Hide for 6 hours</option>
-                            <option value="43200000">Hide for 12 hours</option>
-                            <option value="86400000">Hide for 1 day</option>
-                            <option value="259200000">Hide for 3 days</option>
-                            <option value="604800000">Hide for 1 week</option>
-                            <option value="2592000000">Hide for 1 month</option>
-                            <option value="7776000000">Hide for 3 months</option>
-                            <option value="15552000000">Hide for 6 months</option>
-                        </select>
-                        <div class="spts-widget-choice-row">
-                            <button type="button" id="sptsHideTemporaryBtn">Hide temporarily</button>
-                            <button type="button" id="sptsHideForeverBtn">Remove forever</button>
-                            <button type="button" id="sptsMinimizeBtn">Minimize</button>
-                        </div>
-                    </div>
                 </div>
                 <div class="spts-actions">
                     <button class="spts-action-btn primary" id="sptsContactBtn"> CONTACT</button>
@@ -1274,30 +1253,19 @@
         }
 
         const widgetToggle = overlay.querySelector('#sptsWidgetToggle');
-        const widgetChoice = overlay.querySelector('#sptsWidgetChoice');
         if (widgetToggle) {
-            widgetToggle.checked = !isWidgetHidden();
+            widgetToggle.checked = !isMinimized();
             widgetToggle.addEventListener('change', function(e) {
-                const off = !e.target.checked;
-                if (widgetChoice) widgetChoice.classList.toggle('active', off);
-                if (!off) {
+                const show = e.target.checked;
+                if (show) {
                     clearWidgetHide();
                     setMinimized(false);
                     if (CONFIG.analytics) trackEvent('widget_show', {});
+                } else {
+                    chooseWidgetMinimize();
                 }
             });
         }
-
-        const temporaryBtn = overlay.querySelector('#sptsHideTemporaryBtn');
-        const foreverBtn = overlay.querySelector('#sptsHideForeverBtn');
-        const minimizeBtn = overlay.querySelector('#sptsMinimizeBtn');
-        const durationSelect = overlay.querySelector('#sptsWidgetDuration');
-        if (temporaryBtn) temporaryBtn.addEventListener('click', function() {
-            const duration = Number(durationSelect?.value || 3600000);
-            chooseWidgetHideDuration(duration);
-        });
-        if (foreverBtn) foreverBtn.addEventListener('click', chooseWidgetHideForever);
-        if (minimizeBtn) minimizeBtn.addEventListener('click', chooseWidgetMinimize);
 
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeModal();
