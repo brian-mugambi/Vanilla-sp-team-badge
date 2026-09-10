@@ -31,6 +31,7 @@
         deviceType: 'desktop',
         lastFooterBg: null,
         footerWatchTimer: null,
+        widgetHideTimer: null,
     };
 
     function parseColor(color) {
@@ -626,6 +627,94 @@
             .spts-hidden {
                 display: none !important;
             }
+            .spts-strip-row.spts-minimized {
+                position: fixed !important;
+                left: auto;
+                top: auto;
+                right: 18px;
+                bottom: 18px;
+                width: auto !important;
+                max-width: calc(100vw - 36px);
+                z-index: 2147483000;
+                display: block !important;
+                padding: 0 !important;
+                background: transparent !important;
+                pointer-events: none;
+            }
+            .spts-strip-row.spts-minimized .spts-trigger {
+                pointer-events: auto;
+                padding: 7px 10px;
+                border: 1px solid rgba(56, 189, 248, 0.25);
+                border-radius: 999px;
+                background: rgba(10, 8, 24, 0.82);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+                cursor: grab;
+            }
+            .spts-strip-row.spts-minimized .spts-trigger:active { cursor: grabbing; }
+            .spts-strip-row.spts-minimized .spts-ticker-wrap { display: none !important; }
+            .spts-minimized-hide {
+                display: none;
+                position: absolute;
+                top: -7px;
+                right: -7px;
+                width: 18px;
+                height: 18px;
+                padding: 0;
+                border: 1px solid rgba(255,255,255,0.18);
+                border-radius: 50%;
+                background: #0a0818;
+                color: #8a86b8;
+                font: 12px/16px 'Courier New', monospace;
+                cursor: pointer;
+                pointer-events: auto;
+            }
+            .spts-strip-row.spts-minimized .spts-minimized-hide { display: block; }
+            .spts-widget-choice {
+                display: none;
+                margin-top: 14px;
+                padding: 12px;
+                border: 1px solid #2a2354;
+                border-radius: 10px;
+                background: rgba(8, 6, 26, 0.72);
+            }
+            .spts-widget-choice.active { display: block; }
+            .spts-widget-choice-title {
+                font-size: 0.68rem;
+                color: #b0aee0;
+                margin-bottom: 9px;
+                letter-spacing: 0.04em;
+            }
+            .spts-widget-choice-row {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .spts-widget-choice button {
+                padding: 8px 10px;
+                border: 1px solid #2a2354;
+                border-radius: 8px;
+                background: transparent;
+                color: #8a86b8;
+                font: 0.68rem 'Courier New', monospace;
+                cursor: pointer;
+            }
+            .spts-widget-choice button:hover {
+                border-color: #38bdf8;
+                color: #38bdf8;
+            }
+            .spts-widget-duration {
+                width: 100%;
+                padding: 9px 10px;
+                margin-bottom: 8px;
+                border: 1px solid #2a2354;
+                border-radius: 8px;
+                background: #08061a;
+                color: #b0aee0;
+                font: 0.7rem 'Courier New', monospace;
+                outline: none;
+            }
         `;
     }
 
@@ -683,6 +772,17 @@
         trigger.appendChild(triggerText);
         trigger.appendChild(triggerCursor);
         trigger.setAttribute('aria-label', CONFIG.triggerText + ' — open contact form');
+
+        const minimizedHide = document.createElement('button');
+        minimizedHide.className = 'spts-minimized-hide';
+        minimizedHide.type = 'button';
+        minimizedHide.textContent = '×';
+        minimizedHide.setAttribute('aria-label', 'Hide developer widget for this session');
+        minimizedHide.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideMinimizedForSession();
+        });
         typeText(triggerText, CONFIG.triggerText, 65);
 
         const tickerWrap = document.createElement('div');
@@ -699,6 +799,7 @@
         `;
 
         stripRow.appendChild(trigger);
+        stripRow.appendChild(minimizedHide);
         stripRow.appendChild(tickerWrap);
         return stripRow;
     }
@@ -745,6 +846,27 @@
                         <input type="checkbox" id="sptsWidgetToggle" checked>
                         <label for="sptsWidgetToggle">Show developer widget</label>
                     </div>
+                    <div class="spts-widget-choice" id="sptsWidgetChoice">
+                        <div class="spts-widget-choice-title">Choose what happens to the developer widget</div>
+                        <select class="spts-widget-duration" id="sptsWidgetDuration" aria-label="Hide duration">
+                            <option value="300000">Hide for 5 minutes</option>
+                            <option value="1800000">Hide for 30 minutes</option>
+                            <option value="3600000">Hide for 1 hour</option>
+                            <option value="21600000">Hide for 6 hours</option>
+                            <option value="43200000">Hide for 12 hours</option>
+                            <option value="86400000">Hide for 1 day</option>
+                            <option value="259200000">Hide for 3 days</option>
+                            <option value="604800000">Hide for 1 week</option>
+                            <option value="2592000000">Hide for 1 month</option>
+                            <option value="7776000000">Hide for 3 months</option>
+                            <option value="15552000000">Hide for 6 months</option>
+                        </select>
+                        <div class="spts-widget-choice-row">
+                            <button type="button" id="sptsHideTemporaryBtn">Hide temporarily</button>
+                            <button type="button" id="sptsHideForeverBtn">Remove forever</button>
+                            <button type="button" id="sptsMinimizeBtn">Minimize</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="spts-actions">
                     <button class="spts-action-btn primary" id="sptsContactBtn"> CONTACT</button>
@@ -780,7 +902,7 @@
 
     function openModal(e) {
         if (e) e.preventDefault();
-        if (isWidgetHidden()) return;
+        if (isWidgetHidden() || isMinimizedSessionHidden()) return;
         if (!overlayRef) return;
         state.isOpen = true;
         overlayRef.classList.add('active');
@@ -877,7 +999,11 @@
     }
 
     const STRIP_HIDE_KEY = 'sptsStripHidden';
-    const WIDGET_HIDE_KEY = 'sptsWidgetHidden';
+    const WIDGET_HIDE_UNTIL_KEY = 'sptsWidgetHideUntil';
+    const WIDGET_HIDE_FOREVER_KEY = 'sptsWidgetHideForever';
+    const WIDGET_MINIMIZE_KEY = 'sptsWidgetMinimized';
+    const WIDGET_MINIMIZE_SESSION_HIDE_KEY = 'sptsWidgetMinimizedSessionHidden';
+    const WIDGET_POSITION_KEY = 'sptsWidgetPosition';
 
     function isStripHidden() {
         try { return localStorage.getItem(STRIP_HIDE_KEY) === '1'; } catch { return false; }
@@ -892,38 +1018,189 @@
         } catch {}
     }
 
-    function isWidgetHidden() {
-        try { return localStorage.getItem(WIDGET_HIDE_KEY) === '1'; } catch { return false; }
+    function getWidgetHideUntil() {
+        try {
+            const value = Number(localStorage.getItem(WIDGET_HIDE_UNTIL_KEY) || 0);
+            return Number.isFinite(value) ? value : 0;
+        } catch { return 0; }
     }
 
-    function setWidgetHidden(hidden) {
-        const stripRow = document.getElementById('sptsStripRow');
-        const overlay = document.getElementById('sptsModalOverlay');
+    function isWidgetHidden() {
+        try {
+            if (localStorage.getItem(WIDGET_HIDE_FOREVER_KEY) === '1') return true;
+            const until = getWidgetHideUntil();
+            if (until > Date.now()) return true;
+            if (until) localStorage.removeItem(WIDGET_HIDE_UNTIL_KEY);
+        } catch {}
+        return false;
+    }
 
-        if (stripRow) stripRow.classList.toggle('spts-hidden', hidden);
-
-        if (hidden && overlay) {
-            overlay.classList.remove('active');
-            overlay.setAttribute('aria-hidden', 'true');
-        } else if (overlay) {
-            overlay.removeAttribute('aria-hidden');
+    function setWidgetHiddenUntil(timestamp) {
+        if (state.widgetHideTimer) {
+            clearTimeout(state.widgetHideTimer);
+            state.widgetHideTimer = null;
         }
+        try {
+            localStorage.removeItem(WIDGET_HIDE_FOREVER_KEY);
+            if (timestamp > Date.now()) localStorage.setItem(WIDGET_HIDE_UNTIL_KEY, String(timestamp));
+            else localStorage.removeItem(WIDGET_HIDE_UNTIL_KEY);
+        } catch {}
+        applyWidgetVisibility();
+        if (timestamp > Date.now()) {
+            state.widgetHideTimer = setTimeout(function() {
+                state.widgetHideTimer = null;
+                clearWidgetHide();
+            }, Math.min(timestamp - Date.now() + 50, 2147483647));
+        }
+    }
 
-        if (hidden) {
+    function setWidgetHiddenForever(hidden) {
+        try {
+            if (hidden) {
+                localStorage.setItem(WIDGET_HIDE_FOREVER_KEY, '1');
+                localStorage.removeItem(WIDGET_HIDE_UNTIL_KEY);
+            } else {
+                localStorage.removeItem(WIDGET_HIDE_FOREVER_KEY);
+            }
+        } catch {}
+        applyWidgetVisibility();
+    }
+
+    function clearWidgetHide() {
+        try {
+            localStorage.removeItem(WIDGET_HIDE_FOREVER_KEY);
+            localStorage.removeItem(WIDGET_HIDE_UNTIL_KEY);
+        } catch {}
+        applyWidgetVisibility();
+    }
+
+    function isMinimized() {
+        try { return localStorage.getItem(WIDGET_MINIMIZE_KEY) === '1'; } catch { return false; }
+    }
+
+    function isMinimizedSessionHidden() {
+        try { return sessionStorage.getItem(WIDGET_MINIMIZE_SESSION_HIDE_KEY) === '1'; } catch { return false; }
+    }
+
+    function setMinimized(minimized) {
+        try {
+            if (minimized) localStorage.setItem(WIDGET_MINIMIZE_KEY, '1');
+            else localStorage.removeItem(WIDGET_MINIMIZE_KEY);
+        } catch {}
+        applyWidgetVisibility();
+    }
+
+    function applyWidgetVisibility() {
+        const stripRow = document.getElementById('sptsStripRow');
+        const trigger = stripRow?.querySelector('.spts-trigger');
+        const ticker = document.getElementById('sptsTickerWrap');
+        if (!stripRow) return;
+
+        const hidden = isWidgetHidden();
+        const minimized = !hidden && isMinimized() && !isMinimizedSessionHidden();
+        stripRow.classList.toggle('spts-hidden', hidden || isMinimizedSessionHidden());
+        stripRow.classList.toggle('spts-minimized', minimized);
+        if (ticker) ticker.style.display = minimized ? 'none' : '';
+        if (trigger) trigger.setAttribute('aria-label', minimized ? CONFIG.triggerText + ' — open developer widget' : CONFIG.triggerText + ' — open contact form');
+
+        if (hidden || isMinimizedSessionHidden()) {
+            if (overlayRef) {
+                overlayRef.classList.remove('active');
+                overlayRef.setAttribute('aria-hidden', 'true');
+            }
             state.isOpen = false;
             document.body.style.overflow = '';
+        } else if (overlayRef) {
+            overlayRef.removeAttribute('aria-hidden');
         }
 
+        if (minimized) applyWidgetPosition();
+    }
+
+    function applyWidgetPosition() {
+        const stripRow = document.getElementById('sptsStripRow');
+        if (!stripRow) return;
         try {
-            if (hidden) localStorage.setItem(WIDGET_HIDE_KEY, '1');
-            else localStorage.removeItem(WIDGET_HIDE_KEY);
+            const saved = JSON.parse(localStorage.getItem(WIDGET_POSITION_KEY) || 'null');
+            if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+                const maxLeft = Math.max(0, window.innerWidth - stripRow.offsetWidth - 8);
+                const maxTop = Math.max(0, window.innerHeight - stripRow.offsetHeight - 8);
+                stripRow.style.left = Math.min(Math.max(8, saved.left), maxLeft) + 'px';
+                stripRow.style.top = Math.min(Math.max(8, saved.top), maxTop) + 'px';
+                stripRow.style.right = 'auto';
+                stripRow.style.bottom = 'auto';
+            }
         } catch {}
     }
 
-    function showWidgetAgain() {
-        setWidgetHidden(false);
-        const toggle = overlayRef && overlayRef.querySelector('#sptsWidgetToggle');
-        if (toggle) toggle.checked = true;
+    function hideMinimizedForSession() {
+        try { sessionStorage.setItem(WIDGET_MINIMIZE_SESSION_HIDE_KEY, '1'); } catch {}
+        applyWidgetVisibility();
+    }
+
+    function chooseWidgetHideDuration(durationMs) {
+        setWidgetHiddenUntil(Date.now() + durationMs);
+        if (CONFIG.analytics) trackEvent('widget_hide_temporary', { durationMs });
+        closeModal();
+    }
+
+    function chooseWidgetHideForever() {
+        setWidgetHiddenForever(true);
+        if (CONFIG.analytics) trackEvent('widget_hide_forever', {});
+        closeModal();
+    }
+
+    function chooseWidgetMinimize() {
+        clearWidgetHide();
+        setMinimized(true);
+        if (CONFIG.analytics) trackEvent('widget_minimized', {});
+        closeModal();
+    }
+
+    function wireWidgetDrag() {
+        const stripRow = document.getElementById('sptsStripRow');
+        const trigger = stripRow?.querySelector('.spts-trigger');
+        if (!stripRow || !trigger) return;
+        let dragging = false;
+        let moved = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        trigger.addEventListener('pointerdown', function(e) {
+            if (!stripRow.classList.contains('spts-minimized')) return;
+            dragging = true;
+            moved = false;
+            const rect = stripRow.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            trigger.setPointerCapture?.(e.pointerId);
+        });
+        trigger.addEventListener('pointermove', function(e) {
+            if (!dragging) return;
+            moved = true;
+            const left = Math.min(Math.max(8, e.clientX - offsetX), Math.max(8, window.innerWidth - stripRow.offsetWidth - 8));
+            const top = Math.min(Math.max(8, e.clientY - offsetY), Math.max(8, window.innerHeight - stripRow.offsetHeight - 8));
+            stripRow.style.left = left + 'px';
+            stripRow.style.top = top + 'px';
+            stripRow.style.right = 'auto';
+            stripRow.style.bottom = 'auto';
+        });
+        trigger.addEventListener('pointerup', function() {
+            if (!dragging) return;
+            dragging = false;
+            if (moved) {
+                const rect = stripRow.getBoundingClientRect();
+                try { localStorage.setItem(WIDGET_POSITION_KEY, JSON.stringify({ left: rect.left, top: rect.top })); } catch {}
+                trigger.dataset.sptsDragged = '1';
+                setTimeout(() => delete trigger.dataset.sptsDragged, 0);
+            }
+        });
+        trigger.addEventListener('click', function(e) {
+            if (trigger.dataset.sptsDragged === '1') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
     }
 
     function trackEvent(name, data) {
@@ -948,7 +1225,15 @@
         const wrap = document.getElementById('sptsTickerWrap');
         if (isStripHidden() && wrap) wrap.style.display = 'none';
 
-        if (isWidgetHidden()) setWidgetHidden(true);
+        applyWidgetVisibility();
+        const existingHideUntil = getWidgetHideUntil();
+        if (existingHideUntil > Date.now()) {
+            state.widgetHideTimer = setTimeout(function() {
+                state.widgetHideTimer = null;
+                clearWidgetHide();
+            }, Math.min(existingHideUntil - Date.now() + 50, 2147483647));
+        }
+        wireWidgetDrag();
 
         renderTicker(CONFIG.tickerBaseText);
         setupEventListeners(overlay);
@@ -989,14 +1274,30 @@
         }
 
         const widgetToggle = overlay.querySelector('#sptsWidgetToggle');
+        const widgetChoice = overlay.querySelector('#sptsWidgetChoice');
         if (widgetToggle) {
             widgetToggle.checked = !isWidgetHidden();
             widgetToggle.addEventListener('change', function(e) {
-                const hidden = !e.target.checked;
-                setWidgetHidden(hidden);
-                if (CONFIG.analytics) trackEvent('widget_toggle', { hidden });
+                const off = !e.target.checked;
+                if (widgetChoice) widgetChoice.classList.toggle('active', off);
+                if (!off) {
+                    clearWidgetHide();
+                    setMinimized(false);
+                    if (CONFIG.analytics) trackEvent('widget_show', {});
+                }
             });
         }
+
+        const temporaryBtn = overlay.querySelector('#sptsHideTemporaryBtn');
+        const foreverBtn = overlay.querySelector('#sptsHideForeverBtn');
+        const minimizeBtn = overlay.querySelector('#sptsMinimizeBtn');
+        const durationSelect = overlay.querySelector('#sptsWidgetDuration');
+        if (temporaryBtn) temporaryBtn.addEventListener('click', function() {
+            const duration = Number(durationSelect?.value || 3600000);
+            chooseWidgetHideDuration(duration);
+        });
+        if (foreverBtn) foreverBtn.addEventListener('click', chooseWidgetHideForever);
+        if (minimizeBtn) minimizeBtn.addEventListener('click', chooseWidgetMinimize);
 
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeModal();
