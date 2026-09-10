@@ -741,6 +741,10 @@
                         <input type="checkbox" id="sptsStripToggle" checked>
                         <label for="sptsStripToggle">Show promo strip</label>
                     </div>
+                    <div class="spts-strip-toggle">
+                        <input type="checkbox" id="sptsWidgetToggle" checked>
+                        <label for="sptsWidgetToggle">Show developer widget</label>
+                    </div>
                 </div>
                 <div class="spts-actions">
                     <button class="spts-action-btn primary" id="sptsContactBtn"> CONTACT</button>
@@ -776,6 +780,7 @@
 
     function openModal(e) {
         if (e) e.preventDefault();
+        if (isWidgetHidden()) return;
         if (!overlayRef) return;
         state.isOpen = true;
         overlayRef.classList.add('active');
@@ -872,6 +877,7 @@
     }
 
     const STRIP_HIDE_KEY = 'sptsStripHidden';
+    const WIDGET_HIDE_KEY = 'sptsWidgetHidden';
 
     function isStripHidden() {
         try { return localStorage.getItem(STRIP_HIDE_KEY) === '1'; } catch { return false; }
@@ -884,6 +890,40 @@
             if (hidden) localStorage.setItem(STRIP_HIDE_KEY, '1');
             else localStorage.removeItem(STRIP_HIDE_KEY);
         } catch {}
+    }
+
+    function isWidgetHidden() {
+        try { return localStorage.getItem(WIDGET_HIDE_KEY) === '1'; } catch { return false; }
+    }
+
+    function setWidgetHidden(hidden) {
+        const stripRow = document.getElementById('sptsStripRow');
+        const overlay = document.getElementById('sptsModalOverlay');
+
+        if (stripRow) stripRow.classList.toggle('spts-hidden', hidden);
+
+        if (hidden && overlay) {
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+        } else if (overlay) {
+            overlay.removeAttribute('aria-hidden');
+        }
+
+        if (hidden) {
+            state.isOpen = false;
+            document.body.style.overflow = '';
+        }
+
+        try {
+            if (hidden) localStorage.setItem(WIDGET_HIDE_KEY, '1');
+            else localStorage.removeItem(WIDGET_HIDE_KEY);
+        } catch {}
+    }
+
+    function showWidgetAgain() {
+        setWidgetHidden(false);
+        const toggle = overlayRef && overlayRef.querySelector('#sptsWidgetToggle');
+        if (toggle) toggle.checked = true;
     }
 
     function trackEvent(name, data) {
@@ -907,6 +947,8 @@
         const { stripRow, overlay } = buildUI();
         const wrap = document.getElementById('sptsTickerWrap');
         if (isStripHidden() && wrap) wrap.style.display = 'none';
+
+        if (isWidgetHidden()) setWidgetHidden(true);
 
         renderTicker(CONFIG.tickerBaseText);
         setupEventListeners(overlay);
@@ -943,6 +985,16 @@
             toggle.addEventListener('change', function(e) {
                 setStripHidden(!e.target.checked);
                 if (CONFIG.analytics) trackEvent('strip_toggle', { hidden: !e.target.checked });
+            });
+        }
+
+        const widgetToggle = overlay.querySelector('#sptsWidgetToggle');
+        if (widgetToggle) {
+            widgetToggle.checked = !isWidgetHidden();
+            widgetToggle.addEventListener('change', function(e) {
+                const hidden = !e.target.checked;
+                setWidgetHidden(hidden);
+                if (CONFIG.analytics) trackEvent('widget_toggle', { hidden });
             });
         }
 
