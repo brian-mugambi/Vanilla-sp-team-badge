@@ -931,7 +931,7 @@
                         </div>
                         <p class="spts-toggle-hint" id="sptsToggleHint" role="status"></p>
                     </div>
-                    <a class="spts-visit-link" id="sptsVisitLink" href="https://www.spteamstudio.com" target="_blank" rel="noopener noreferrer">
+                    <a class="spts-visit-link" id="sptsVisitLink" href="https://sp-team-studio-website.vercel.app/#services" target="_blank" rel="noopener noreferrer">
                         ↗ Visit SP Team Studio
                     </a>
                 </div>
