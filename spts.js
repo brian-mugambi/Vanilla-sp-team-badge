@@ -7,12 +7,9 @@
         shortName: 'SPTS',
         triggerText: '@dev_sp',
         tickerBaseText: '✦ Slow website? ✦ No leads? ✦ Outdated design? ✦ We fix it fast ✦ KSH 1000/month',
-        stripFile: 'strip.txt',
-        tickerDwellMs: 4000,
         tickerSpeed: 22,
         analytics: true,
         debugMode: false,
-        cacheBusting: true,
         footerWatchInterval: 3000,
     };
 
@@ -26,8 +23,6 @@
     const state = {
         isOpen: false,
         isFormVisible: false,
-        stripLoaded: false,
-        dwellTimer: null,
         deviceType: 'desktop',
         lastFooterBg: null,
         footerWatchTimer: null,
@@ -126,10 +121,10 @@
         stripRow.style.setProperty('--spts-fg', fg);
         stripRow.style.setProperty('--spts-accent', accent);
         stripRow.style.background = finalBg;
-        stripRow.style.border = '1px solid #2a2354';
-        stripRow.style.borderRadius = '6px';
+        stripRow.style.borderRadius = '10px';
         stripRow.style.padding = '6px 12px';
         stripRow.style.boxSizing = 'border-box';
+        stripRow.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.25)';
 
         // Ticker wrap
         const tickerWrap = document.getElementById('sptsTickerWrap');
@@ -299,7 +294,6 @@
                 width: 100%;
                 border-radius: 16px;
                 padding: 40px 32px 32px;
-                border: 1px solid #2a2354;
                 box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 50px rgba(56, 189, 248, 0.08);
                 position: relative;
                 transform: scale(0.95) translateY(10px);
@@ -325,7 +319,6 @@
                 z-index: 2;
                 margin-bottom: 24px;
                 padding-bottom: 20px;
-                border-bottom: 1px solid #2a2354;
             }
             .spts-modal-card .spts-welcome .spts-prompt {
                 color: #4a3f80;
@@ -366,16 +359,14 @@
             .spts-modal-card .spts-tagline span {
                 font-size: 0.6rem;
                 color: #7a6ab0;
-                border: 1px solid #2a2354;
                 padding: 4px 14px;
                 border-radius: 20px;
                 letter-spacing: 0.03em;
-                background: rgba(56, 189, 248, 0.04);
+                background: rgba(56, 189, 248, 0.08);
             }
             .spts-modal-card .spts-toggles {
                 margin-top: 18px;
                 padding-top: 16px;
-                border-top: 1px solid #2a2354;
             }
             .spts-modal-card .spts-toggle-row {
                 display: flex;
@@ -388,8 +379,7 @@
             .spts-modal-card .spts-toggle-row--child {
                 margin-left: 25px;
                 padding-left: 13px;
-                border-left: 2px solid #2a2354;
-                transition: border-color 0.2s ease;
+                transition: box-shadow 0.2s ease;
             }
             .spts-modal-card .spts-toggle-row input[type="checkbox"] {
                 appearance: none;
@@ -398,15 +388,13 @@
                 height: 18px;
                 flex-shrink: 0;
                 margin-top: 1px;
-                border: 2px solid #2a2354;
                 border-radius: 6px;
-                background: #08061a;
+                background: rgba(255, 255, 255, 0.06);
                 cursor: pointer;
                 position: relative;
                 transition: all 0.2s ease;
             }
             .spts-modal-card .spts-toggle-row input[type="checkbox"]:checked {
-                border-color: #38bdf8;
                 background: #38bdf8;
             }
             .spts-modal-card .spts-toggle-row input[type="checkbox"]:checked::after {
@@ -449,17 +437,13 @@
             .spts-modal-card .spts-toggle-row.spts-disabled .spts-toggle-desc {
                 opacity: 0.45;
             }
-            .spts-modal-card .spts-toggle-row--child.spts-disabled {
-                border-left-color: #1a1738;
-            }
             .spts-modal-card .spts-toggle-hint {
                 margin: 10px 0 0;
                 padding: 9px 11px;
                 font-size: 0.64rem;
                 line-height: 1.5;
                 color: #7a6ab0;
-                background: rgba(56, 189, 248, 0.05);
-                border: 1px solid #2a2354;
+                background: rgba(56, 189, 248, 0.06);
                 border-radius: 8px;
                 transition: all 0.2s ease;
             }
@@ -491,7 +475,6 @@
             .spts-modal-card .spts-action-btn {
                 flex: 1;
                 padding: 14px 20px;
-                border: 2px solid #2a2354;
                 border-radius: 12px;
                 font-family: inherit;
                 font-size: 0.8rem;
@@ -503,20 +486,19 @@
                 justify-content: center;
                 gap: 8px;
                 text-decoration: none;
-                background: transparent;
+                background: rgba(255, 255, 255, 0.04);
                 color: #8a86b8;
                 letter-spacing: 0.02em;
             }
             .spts-modal-card .spts-action-btn:hover {
-                border-color: #38bdf8;
                 color: #38bdf8;
+                background: rgba(56, 189, 248, 0.08);
                 transform: translateY(-2px);
                 box-shadow: 0 8px 25px rgba(56, 189, 248, 0.12);
             }
             .spts-modal-card .spts-action-btn.primary {
-                border-color: #38bdf8;
                 color: #38bdf8;
-                background: rgba(56, 189, 248, 0.04);
+                background: rgba(56, 189, 248, 0.10);
             }
             .spts-modal-card .spts-action-btn.primary:hover {
                 background: rgba(56, 189, 248, 0.10);
@@ -555,18 +537,18 @@
                 font-size: 0.9rem;
                 font-weight: 400;
                 color: #b0aee0;
-                background: #08061a;
-                border: 2px solid #2a2354;
+                background: rgba(255, 255, 255, 0.05);
                 border-radius: 10px;
                 transition: all 0.2s ease;
                 outline: none;
                 box-sizing: border-box;
                 line-height: 1.4;
+                box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
             }
             .spts-modal-card .spts-form-group input:focus,
             .spts-modal-card .spts-form-group textarea:focus {
-                border-color: #38bdf8;
-                box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.08);
+                background: rgba(56, 189, 248, 0.06);
+                box-shadow: inset 0 -2px 0 #38bdf8, 0 0 0 4px rgba(56, 189, 248, 0.08);
             }
             .spts-modal-card .spts-form-group textarea {
                 min-height: 80px;
@@ -720,12 +702,11 @@
             .spts-strip-row.spts-minimized .spts-trigger {
                 pointer-events: auto;
                 padding: 7px 10px;
-                border: 1px solid rgba(56, 189, 248, 0.25);
                 border-radius: 999px;
                 background: rgba(10, 8, 24, 0.82);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
-                box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+                box-shadow: 0 6px 24px rgba(0,0,0,0.28), 0 0 0 1px rgba(56, 189, 248, 0.12) inset;
                 cursor: grab;
             }
             .spts-strip-row.spts-minimized .spts-trigger:active { cursor: grabbing; }
@@ -738,59 +719,15 @@
                 width: 18px;
                 height: 18px;
                 padding: 0;
-                border: 1px solid rgba(255,255,255,0.18);
                 border-radius: 50%;
                 background: #0a0818;
+                box-shadow: 0 0 0 1px rgba(255,255,255,0.14) inset;
                 color: #8a86b8;
                 font: 12px/16px 'Courier New', monospace;
                 cursor: pointer;
                 pointer-events: auto;
             }
             .spts-strip-row.spts-minimized .spts-minimized-hide { display: block; }
-            .spts-widget-choice {
-                display: none;
-                margin-top: 14px;
-                padding: 12px;
-                border: 1px solid #2a2354;
-                border-radius: 10px;
-                background: rgba(8, 6, 26, 0.72);
-            }
-            .spts-widget-choice.active { display: block; }
-            .spts-widget-choice-title {
-                font-size: 0.68rem;
-                color: #b0aee0;
-                margin-bottom: 9px;
-                letter-spacing: 0.04em;
-            }
-            .spts-widget-choice-row {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .spts-widget-choice button {
-                padding: 8px 10px;
-                border: 1px solid #2a2354;
-                border-radius: 8px;
-                background: transparent;
-                color: #8a86b8;
-                font: 0.68rem 'Courier New', monospace;
-                cursor: pointer;
-            }
-            .spts-widget-choice button:hover {
-                border-color: #38bdf8;
-                color: #38bdf8;
-            }
-            .spts-widget-duration {
-                width: 100%;
-                padding: 9px 10px;
-                margin-bottom: 8px;
-                border: 1px solid #2a2354;
-                border-radius: 8px;
-                background: #08061a;
-                color: #b0aee0;
-                font: 0.7rem 'Courier New', monospace;
-                outline: none;
-            }
         `;
     }
 
@@ -968,37 +905,34 @@
     }
 
     // ===== Scroll lock: freezes the background page while the modal is open =====
-    // Plain `overflow:hidden` on <body> doesn't reliably stop scroll on iOS Safari,
-    // so we pin the body in place and restore the exact scroll position on close.
-    let sptsSavedScrollY = 0;
+    // Pinning <body> with position:fixed (the old approach) rewrites the page's
+    // layout context, breaks any fixed/sticky elements the host page has, and
+    // can jump the page on close. Instead we just hide overflow on <html> and
+    // pad the right edge by the scrollbar's width so nothing shifts sideways.
     let sptsScrollLocked = false;
+    let sptsBodyPaddingRight = '';
+
+    function getScrollbarWidth() {
+        return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+    }
 
     function lockBodyScroll() {
         if (sptsScrollLocked) return;
         sptsScrollLocked = true;
-        sptsSavedScrollY = window.scrollY || window.pageYOffset || 0;
-        const body = document.body;
-        body.style.position = 'fixed';
-        body.style.top = -sptsSavedScrollY + 'px';
-        body.style.left = '0';
-        body.style.right = '0';
-        body.style.width = '100%';
-        body.style.overflow = 'hidden';
+        const scrollbarWidth = getScrollbarWidth();
+        sptsBodyPaddingRight = document.body.style.paddingRight || '';
         document.documentElement.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) {
+            const current = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
+            document.body.style.paddingRight = (current + scrollbarWidth) + 'px';
+        }
     }
 
     function unlockBodyScroll() {
         if (!sptsScrollLocked) return;
         sptsScrollLocked = false;
-        const body = document.body;
-        body.style.position = '';
-        body.style.top = '';
-        body.style.left = '';
-        body.style.right = '';
-        body.style.width = '';
-        body.style.overflow = '';
         document.documentElement.style.overflow = '';
-        window.scrollTo(0, sptsSavedScrollY);
+        document.body.style.paddingRight = sptsBodyPaddingRight;
     }
 
     function openModal(e) {
@@ -1066,38 +1000,6 @@
                 requestAnimationFrame(() => tickerWrapEl.classList.add('spts-revealed'));
             }
         });
-    }
-
-    function loadStripText() {
-        if (state.stripLoaded) return;
-        state.stripLoaded = true;
-        fetch(CONFIG.stripFile + (CONFIG.cacheBusting ? '?t=' + Date.now() : ''))
-            .then(res => res.ok ? res.text() : '')
-            .then(text => {
-                const extra = text.trim();
-                if (!extra) return;
-                const extraItems = extra.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-                if (!extraItems.length) return;
-                const newText = CONFIG.tickerBaseText + '   ✦   ' + extraItems.join('   ✦   ');
-                CONFIG.tickerBaseText = newText;
-                renderTicker(newText);
-            })
-            .catch(() => { state.stripLoaded = false; });
-    }
-
-    function checkTickerDwell() {
-        if (state.stripLoaded) return;
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const pageHeight = document.documentElement.scrollHeight;
-        const isAtBottom = scrollPosition >= pageHeight - 100;
-        if (isAtBottom) {
-            if (!state.dwellTimer) {
-                state.dwellTimer = setTimeout(loadStripText, CONFIG.tickerDwellMs);
-            }
-        } else if (state.dwellTimer) {
-            clearTimeout(state.dwellTimer);
-            state.dwellTimer = null;
-        }
     }
 
     const STRIP_HIDE_KEY = 'sptsStripHidden';
@@ -1240,18 +1142,6 @@
         applyWidgetVisibility();
     }
 
-    function chooseWidgetHideDuration(durationMs) {
-        setWidgetHiddenUntil(Date.now() + durationMs);
-        if (CONFIG.analytics) trackEvent('widget_hide_temporary', { durationMs });
-        closeModal();
-    }
-
-    function chooseWidgetHideForever() {
-        setWidgetHiddenForever(true);
-        if (CONFIG.analytics) trackEvent('widget_hide_forever', {});
-        closeModal();
-    }
-
     function chooseWidgetMinimize() {
         clearWidgetHide();
         setMinimized(true);
@@ -1339,10 +1229,6 @@
 
         renderTicker(CONFIG.tickerBaseText);
         setupEventListeners(overlay);
-
-        window.addEventListener('scroll', checkTickerDwell, { passive: true });
-        window.addEventListener('resize', checkTickerDwell);
-        checkTickerDwell();
 
         startFooterWatcher();
 
@@ -1466,9 +1352,6 @@
                 }
             });
         }
-
-        const trigger = document.querySelector('.spts-trigger');
-        if (trigger) trigger.addEventListener('click', openModal);
 
         if (detectDevice() === 'mobile') {
             const card = overlay.querySelector('.spts-modal-card');
