@@ -6,9 +6,10 @@
         developerName: 'SP Team Studio',
         shortName: 'SPTS',
         triggerText: '@dev_sp',
-        tickerBaseText: '✦ Slow website? ✦ No leads? ✦ Outdated design? ✦ We fix it fast ✦ KSH 1000/month',
+        // Ticker text comes ENTIRELY from stripFile — no baked-in fallback copy.
+        // Each non-empty line in the file becomes one ticker item.
         stripFile: 'strip.txt',
-        tickerDwellMs: 4000,
+        tickerSeparator: ' ✦ ',
         tickerSpeed: 22,
         analytics: true,
         debugMode: false,
@@ -27,7 +28,6 @@
         isOpen: false,
         isFormVisible: false,
         stripLoaded: false,
-        dwellTimer: null,
         deviceType: 'desktop',
         lastFooterBg: null,
         footerWatchTimer: null,
@@ -205,12 +205,9 @@
                 padding: 2px 10px;
                 margin: 0;
                 position: relative;
-                cursor: pointer;
+                pointer-events: none;
+                user-select: none;
                 border-radius: 4px;
-                transition: background 0.3s;
-            }
-            .spts-strip-row .spts-ticker-wrap:hover {
-                background: rgba(255,255,255,0.12) !important;
             }
             .spts-strip-row .spts-ticker-track {
                 display: inline-flex;
@@ -864,9 +861,7 @@
         const tickerWrap = document.createElement('div');
         tickerWrap.className = 'spts-ticker-wrap';
         tickerWrap.id = 'sptsTickerWrap';
-        tickerWrap.setAttribute('role', 'button');
-        tickerWrap.setAttribute('tabindex', '0');
-        tickerWrap.setAttribute('aria-label', 'Open contact form');
+        tickerWrap.setAttribute('aria-hidden', 'true');
         tickerWrap.innerHTML = `
             <div class="spts-ticker-track" id="sptsTickerTrack">
                 <span class="spts-ticker-content" id="sptsTickerContentA"></span>
@@ -1040,64 +1035,63 @@
         state.isFormVisible = true;
     }
 
+    // Highlights any "KSH <amount>/<period>" price pattern that happens to be
+    // in the loaded text — generic pattern match, not a specific hardcoded price.
     function formatTickerText(text) {
         return text.replace(
-            /(as low as\s*)(KSH\s*1000\/month)/i,
-            '$1<span class="spts-ticker-price">$2</span>'
+            /(KSH\s*[\d,]+\s*\/\s*\w+)/gi,
+            '<span class="spts-ticker-price">$1</span>'
         );
     }
 
-    function renderTicker(text) {
+    function renderTicker(items) {
         const contentA = document.getElementById('sptsTickerContentA');
         const contentB = document.getElementById('sptsTickerContentB');
         const track = document.getElementById('sptsTickerTrack');
         const tickerWrapEl = document.getElementById('sptsTickerWrap');
-        if (!contentA || !contentB || !track) return;
-        const cursorHTML = '<span class="spts-type-cursor" aria-hidden="true"></span>';
-        const html = formatTickerText(text) + cursorHTML + '<span class="spts-ticker-sep">//</span>';
+        if (!contentA || !contentB || !track || !tickerWrapEl) return;
+
+        if (!items || !items.length) {
+            // Nothing to show — hide the ticker cleanly instead of showing placeholder copy.
+            tickerWrapEl.style.display = 'none';
+            return;
+        }
+
+        const sep = '<span class="spts-ticker-sep">' + CONFIG.tickerSeparator.trim() + '</span>';
+        const joined = items.map(formatTickerText).join(sep);
+        const html = joined + sep;
         contentA.innerHTML = html;
         contentB.innerHTML = html;
+
+        if (!isStripHidden()) tickerWrapEl.style.display = '';
+
         requestAnimationFrame(() => {
             const width = contentA.getBoundingClientRect().width;
             const duration = Math.max(width / CONFIG.tickerSpeed, 10);
             track.style.animationDuration = duration + 's';
             // visual-only: reveal the strip with a left-to-right typewriter wipe
-            if (tickerWrapEl && !tickerWrapEl.classList.contains('spts-revealed')) {
+            if (!tickerWrapEl.classList.contains('spts-revealed')) {
                 requestAnimationFrame(() => tickerWrapEl.classList.add('spts-revealed'));
             }
         });
     }
 
-    function loadStripText() {
+    function loadTickerText() {
         if (state.stripLoaded) return;
         state.stripLoaded = true;
         fetch(CONFIG.stripFile + (CONFIG.cacheBusting ? '?t=' + Date.now() : ''))
             .then(res => res.ok ? res.text() : '')
             .then(text => {
-                const extra = text.trim();
-                if (!extra) return;
-                const extraItems = extra.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-                if (!extraItems.length) return;
-                const newText = CONFIG.tickerBaseText + '   ✦   ' + extraItems.join('   ✦   ');
-                CONFIG.tickerBaseText = newText;
-                renderTicker(newText);
+                const items = text
+                    .split(/\r?\n/)
+                    .map(line => line.trim())
+                    .filter(Boolean);
+                renderTicker(items);
             })
-            .catch(() => { state.stripLoaded = false; });
-    }
-
-    function checkTickerDwell() {
-        if (state.stripLoaded) return;
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const pageHeight = document.documentElement.scrollHeight;
-        const isAtBottom = scrollPosition >= pageHeight - 100;
-        if (isAtBottom) {
-            if (!state.dwellTimer) {
-                state.dwellTimer = setTimeout(loadStripText, CONFIG.tickerDwellMs);
-            }
-        } else if (state.dwellTimer) {
-            clearTimeout(state.dwellTimer);
-            state.dwellTimer = null;
-        }
+            .catch(() => {
+                state.stripLoaded = false;
+                renderTicker([]);
+            });
     }
 
     const STRIP_HIDE_KEY = 'sptsStripHidden';
@@ -1337,12 +1331,8 @@
         }
         wireWidgetDrag();
 
-        renderTicker(CONFIG.tickerBaseText);
+        loadTickerText();
         setupEventListeners(overlay);
-
-        window.addEventListener('scroll', checkTickerDwell, { passive: true });
-        window.addEventListener('resize', checkTickerDwell);
-        checkTickerDwell();
 
         startFooterWatcher();
 
@@ -1451,24 +1441,6 @@
                 setTimeout(closeModal, 800);
             });
         }
-
-        const tickerWrap = document.getElementById('sptsTickerWrap');
-        if (tickerWrap) {
-            ['click', 'touchstart'].forEach(ev => {
-                tickerWrap.addEventListener(ev, function(e) {
-                    if (!state.isOpen) openModal(e);
-                }, { passive: ev === 'touchstart' });
-            });
-            tickerWrap.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (!state.isOpen) openModal(e);
-                }
-            });
-        }
-
-        const trigger = document.querySelector('.spts-trigger');
-        if (trigger) trigger.addEventListener('click', openModal);
 
         if (detectDevice() === 'mobile') {
             const card = overlay.querySelector('.spts-modal-card');
