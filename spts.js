@@ -1079,17 +1079,29 @@
     function loadTickerText() {
         if (state.stripLoaded) return;
         state.stripLoaded = true;
-        fetch(CONFIG.stripFile + (CONFIG.cacheBusting ? '?t=' + Date.now() : ''))
-            .then(res => res.ok ? res.text() : '')
+        const url = CONFIG.stripFile + (CONFIG.cacheBusting ? '?t=' + Date.now() : '');
+        fetch(url)
+            .then(res => {
+                if (!res.ok) {
+                    console.warn(`[${CONFIG.shortName}] Could not load "${url}" (status ${res.status}). ` +
+                        `Make sure strip.txt exists at that path relative to this page. Ticker will stay hidden.`);
+                    return '';
+                }
+                return res.text();
+            })
             .then(text => {
                 const items = text
                     .split(/\r?\n/)
                     .map(line => line.trim())
                     .filter(Boolean);
+                if (!items.length) {
+                    console.warn(`[${CONFIG.shortName}] "${url}" loaded but has no usable lines. Ticker will stay hidden.`);
+                }
                 renderTicker(items);
             })
-            .catch(() => {
+            .catch(err => {
                 state.stripLoaded = false;
+                console.error(`[${CONFIG.shortName}] Failed to fetch "${url}":`, err);
                 renderTicker([]);
             });
     }
@@ -1319,7 +1331,12 @@
     function init() {
         const { stripRow, overlay } = buildUI();
         const wrap = document.getElementById('sptsTickerWrap');
-        if (isStripHidden() && wrap) wrap.style.display = 'none';
+        if (isStripHidden() && wrap) {
+            wrap.style.display = 'none';
+            console.warn(`[${CONFIG.shortName}] Promo strip is hidden because localStorage.${STRIP_HIDE_KEY} = "1" ` +
+                `(set via the widget's "Promo strip" toggle). Run localStorage.removeItem("${STRIP_HIDE_KEY}") ` +
+                `and reload to bring it back.`);
+        }
 
         applyWidgetVisibility();
         const existingHideUntil = getWidgetHideUntil();
