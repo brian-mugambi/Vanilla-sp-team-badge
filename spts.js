@@ -269,7 +269,11 @@
             }
 
             .spts-modal-overlay {
-                position: fixed;
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
                 inset: 0;
                 width: 100%;
                 height: 100%;
@@ -279,7 +283,8 @@
                 display: none;
                 align-items: center;
                 justify-content: center;
-                z-index: 999999;
+                z-index: 2147483647;
+                isolation: isolate;
                 font-family: 'Courier New', 'Fira Code', monospace;
                 padding: 20px;
                 box-sizing: border-box;
@@ -295,7 +300,7 @@
                 border-radius: 16px;
                 padding: 40px 32px 32px;
                 border: 1px solid #2a2354;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(56, 189, 248, 0.05);
+                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 50px rgba(56, 189, 248, 0.08);
                 position: relative;
                 transform: scale(0.95) translateY(10px);
                 transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
@@ -367,20 +372,32 @@
                 letter-spacing: 0.03em;
                 background: rgba(56, 189, 248, 0.04);
             }
-            .spts-modal-card .spts-strip-toggle {
+            .spts-modal-card .spts-toggles {
+                margin-top: 18px;
+                padding-top: 16px;
+                border-top: 1px solid #2a2354;
+            }
+            .spts-modal-card .spts-toggle-row {
                 display: flex;
-                align-items: center;
+                align-items: flex-start;
                 gap: 10px;
-                margin-top: 16px;
+                padding: 7px 0;
                 cursor: pointer;
                 user-select: none;
             }
-            .spts-modal-card .spts-strip-toggle input[type="checkbox"] {
+            .spts-modal-card .spts-toggle-row--child {
+                margin-left: 25px;
+                padding-left: 13px;
+                border-left: 2px solid #2a2354;
+                transition: border-color 0.2s ease;
+            }
+            .spts-modal-card .spts-toggle-row input[type="checkbox"] {
                 appearance: none;
                 -webkit-appearance: none;
                 width: 18px;
                 height: 18px;
                 flex-shrink: 0;
+                margin-top: 1px;
                 border: 2px solid #2a2354;
                 border-radius: 6px;
                 background: #08061a;
@@ -388,11 +405,11 @@
                 position: relative;
                 transition: all 0.2s ease;
             }
-            .spts-modal-card .spts-strip-toggle input[type="checkbox"]:checked {
+            .spts-modal-card .spts-toggle-row input[type="checkbox"]:checked {
                 border-color: #38bdf8;
                 background: #38bdf8;
             }
-            .spts-modal-card .spts-strip-toggle input[type="checkbox"]:checked::after {
+            .spts-modal-card .spts-toggle-row input[type="checkbox"]:checked::after {
                 content: '✓';
                 position: absolute;
                 top: -2px;
@@ -400,10 +417,69 @@
                 font-size: 0.75rem;
                 color: #0a0818;
             }
-            .spts-modal-card .spts-strip-toggle label {
-                font-size: 0.75rem;
-                color: #8a86b8;
+            .spts-modal-card .spts-toggle-row input[type="checkbox"]:disabled {
+                cursor: not-allowed;
+                opacity: 0.4;
+            }
+            .spts-modal-card .spts-toggle-row input[type="checkbox"]:focus-visible {
+                box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+            }
+            .spts-modal-card .spts-toggle-row label {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
                 cursor: pointer;
+            }
+            .spts-modal-card .spts-toggle-title {
+                font-size: 0.78rem;
+                color: #b0aee0;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+            }
+            .spts-modal-card .spts-toggle-desc {
+                font-size: 0.66rem;
+                color: #6a5aa0;
+                line-height: 1.4;
+            }
+            .spts-modal-card .spts-toggle-row.spts-disabled,
+            .spts-modal-card .spts-toggle-row.spts-disabled label {
+                cursor: not-allowed;
+            }
+            .spts-modal-card .spts-toggle-row.spts-disabled .spts-toggle-title,
+            .spts-modal-card .spts-toggle-row.spts-disabled .spts-toggle-desc {
+                opacity: 0.45;
+            }
+            .spts-modal-card .spts-toggle-row--child.spts-disabled {
+                border-left-color: #1a1738;
+            }
+            .spts-modal-card .spts-toggle-hint {
+                margin: 10px 0 0;
+                padding: 9px 11px;
+                font-size: 0.64rem;
+                line-height: 1.5;
+                color: #7a6ab0;
+                background: rgba(56, 189, 248, 0.05);
+                border: 1px solid #2a2354;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+            }
+            .spts-modal-card .spts-visit-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-top: 14px;
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #38bdf8;
+                text-decoration: none;
+                letter-spacing: 0.02em;
+                border-bottom: 1px dotted rgba(56, 189, 248, 0.5);
+                padding-bottom: 1px;
+                transition: all 0.2s ease;
+            }
+            .spts-modal-card .spts-visit-link:hover {
+                color: #7dd3fc;
+                border-bottom-color: #7dd3fc;
             }
             .spts-modal-card .spts-actions {
                 display: flex;
@@ -838,14 +914,26 @@
                         <span>UX Excellence</span>
                         <span>Secure</span>
                     </div>
-                    <div class="spts-strip-toggle">
-                        <input type="checkbox" id="sptsStripToggle" checked>
-                        <label for="sptsStripToggle">Show promo strip</label>
+                    <div class="spts-toggles" id="sptsToggles">
+                        <div class="spts-toggle-row" id="sptsWidgetToggleRow">
+                            <input type="checkbox" id="sptsWidgetToggle" checked>
+                            <label for="sptsWidgetToggle">
+                                <span class="spts-toggle-title">Developer widget</span>
+                                <span class="spts-toggle-desc">Keep this helper visible on the site</span>
+                            </label>
+                        </div>
+                        <div class="spts-toggle-row spts-toggle-row--child" id="sptsStripToggleRow">
+                            <input type="checkbox" id="sptsStripToggle" checked>
+                            <label for="sptsStripToggle">
+                                <span class="spts-toggle-title">Promo strip</span>
+                                <span class="spts-toggle-desc">Show the scrolling offer inside the widget</span>
+                            </label>
+                        </div>
+                        <p class="spts-toggle-hint" id="sptsToggleHint" role="status"></p>
                     </div>
-                    <div class="spts-strip-toggle">
-                        <input type="checkbox" id="sptsWidgetToggle" checked>
-                        <label for="sptsWidgetToggle">Show developer widget</label>
-                    </div>
+                    <a class="spts-visit-link" id="sptsVisitLink" href="https://www.spteamstudio.com" target="_blank" rel="noopener noreferrer">
+                        ↗ Visit SP Team Studio
+                    </a>
                 </div>
                 <div class="spts-actions">
                     <button class="spts-action-btn primary" id="sptsContactBtn"> CONTACT</button>
@@ -879,14 +967,49 @@
         return overlay;
     }
 
+    // ===== Scroll lock: freezes the background page while the modal is open =====
+    // Plain `overflow:hidden` on <body> doesn't reliably stop scroll on iOS Safari,
+    // so we pin the body in place and restore the exact scroll position on close.
+    let sptsSavedScrollY = 0;
+    let sptsScrollLocked = false;
+
+    function lockBodyScroll() {
+        if (sptsScrollLocked) return;
+        sptsScrollLocked = true;
+        sptsSavedScrollY = window.scrollY || window.pageYOffset || 0;
+        const body = document.body;
+        body.style.position = 'fixed';
+        body.style.top = -sptsSavedScrollY + 'px';
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.width = '100%';
+        body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+    }
+
+    function unlockBodyScroll() {
+        if (!sptsScrollLocked) return;
+        sptsScrollLocked = false;
+        const body = document.body;
+        body.style.position = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+        body.style.width = '';
+        body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        window.scrollTo(0, sptsSavedScrollY);
+    }
+
     function openModal(e) {
         if (e) e.preventDefault();
         if (isWidgetHidden() || isMinimizedSessionHidden()) return;
         if (!overlayRef) return;
         state.isOpen = true;
         overlayRef.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lockBodyScroll();
         showWelcome();
+        if (typeof overlayRef.refreshToggles === 'function') overlayRef.refreshToggles();
         if (CONFIG.analytics) trackEvent('modal_open', {});
     }
 
@@ -894,7 +1017,7 @@
         state.isOpen = false;
         if (overlayRef) {
             overlayRef.classList.remove('active');
-            document.body.style.overflow = '';
+            unlockBodyScroll();
             setTimeout(showWelcome, 300);
         }
     }
@@ -1088,7 +1211,7 @@
                 overlayRef.setAttribute('aria-hidden', 'true');
             }
             state.isOpen = false;
-            document.body.style.overflow = '';
+            unlockBodyScroll();
         } else if (overlayRef) {
             overlayRef.removeAttribute('aria-hidden');
         }
@@ -1244,15 +1367,43 @@
         if (backBtn) backBtn.addEventListener('click', showWelcome);
 
         const toggle = overlay.querySelector('#sptsStripToggle');
+        const stripToggleRow = overlay.querySelector('#sptsStripToggleRow');
+        const widgetToggle = overlay.querySelector('#sptsWidgetToggle');
+        const toggleHint = overlay.querySelector('#sptsToggleHint');
+
+        // The promo strip only makes sense while the developer widget itself
+        // is on — keep the checkbox state and copy honest about that at all times.
+        function refreshToggleAvailability() {
+            if (!toggle || !widgetToggle) return;
+            const widgetOn = widgetToggle.checked;
+            if (widgetOn) {
+                toggle.disabled = false;
+                if (stripToggleRow) stripToggleRow.classList.remove('spts-disabled');
+                toggle.checked = !isStripHidden();
+                if (toggleHint) {
+                    toggleHint.textContent = toggle.checked
+                        ? 'Developer widget is on — the promo strip is showing. Turn it off any time.'
+                        : 'Developer widget is on — the promo strip is hidden. Turn it on any time.';
+                }
+            } else {
+                toggle.disabled = true;
+                if (stripToggleRow) stripToggleRow.classList.add('spts-disabled');
+                toggle.checked = false;
+                if (toggleHint) {
+                    toggleHint.textContent = 'Developer widget is off, so the promo strip is unavailable. Turn the widget on to control it.';
+                }
+            }
+        }
+
         if (toggle) {
-            toggle.checked = !isStripHidden();
             toggle.addEventListener('change', function(e) {
+                if (toggle.disabled) return;
                 setStripHidden(!e.target.checked);
                 if (CONFIG.analytics) trackEvent('strip_toggle', { hidden: !e.target.checked });
+                refreshToggleAvailability();
             });
         }
 
-        const widgetToggle = overlay.querySelector('#sptsWidgetToggle');
         if (widgetToggle) {
             widgetToggle.checked = !isMinimized();
             widgetToggle.addEventListener('change', function(e) {
@@ -1264,8 +1415,12 @@
                 } else {
                     chooseWidgetMinimize();
                 }
+                refreshToggleAvailability();
             });
         }
+
+        refreshToggleAvailability();
+        overlay.refreshToggles = refreshToggleAvailability;
 
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeModal();
