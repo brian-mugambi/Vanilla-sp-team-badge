@@ -1382,15 +1382,15 @@
                 toggle.checked = !isStripHidden();
                 if (toggleHint) {
                     toggleHint.textContent = toggle.checked
-                        ? 'Developer widget is on — the promo strip is showing. Turn it off any time.'
-                        : 'Developer widget is on — the promo strip is hidden. Turn it on any time.';
+                        ? 'Promo strip is showing.'
+                        : 'promo strip is hidden.';
                 }
             } else {
                 toggle.disabled = true;
                 if (stripToggleRow) stripToggleRow.classList.add('spts-disabled');
                 toggle.checked = false;
                 if (toggleHint) {
-                    toggleHint.textContent = 'Developer widget is off, so the promo strip is unavailable. Turn the widget on to control it.';
+                    toggleHint.textContent = 'Promo strip unavailable.';
                 }
             }
         }
