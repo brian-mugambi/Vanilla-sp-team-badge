@@ -6,7 +6,7 @@
         developerName: 'SP Team Studio',
         shortName: 'SPTS',
         triggerText: '@dev_sp',
-        tickerBaseText: '✦ Digital tools and systems available engineered for excellence contact Spts today brought to you by vibe skill community',
+        tickerBaseText: '✦ SP Team Studio architects, builds, and deploys high-performance digital systems that help brands grow, compete, and lead — made possible by the Vibe Skill Community.',
         tickerSpeed: 22,
         analytics: true,
         debugMode: false,
