@@ -6,7 +6,7 @@
         developerName: 'SP Team Studio',
         shortName: 'SPTS',
         triggerText: '@dev_sp',
-        tickerBaseText: '✦ Slow website? ✦ No leads? ✦ Outdated design? ✦ We fix it fast ✦ KSH 1000/month',
+        tickerBaseText: '✦ Digital tools and systems available engineered for excellence contact Spts today brought to you by vibe skill community',
         tickerSpeed: 22,
         analytics: true,
         debugMode: false,
