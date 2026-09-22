@@ -1010,11 +1010,7 @@
     const WIDGET_POSITION_KEY = 'sptsWidgetPosition';
 
     function isStripHidden() {
-        try {
-            const val = localStorage.getItem(STRIP_HIDE_KEY);
-            if (val === null) return true; // default: hidden until the user opts in
-            return val === '1';
-        } catch { return true; }
+        try { return localStorage.getItem(STRIP_HIDE_KEY) === '1'; } catch { return false; }
     }
 
     function setStripHidden(hidden) {
