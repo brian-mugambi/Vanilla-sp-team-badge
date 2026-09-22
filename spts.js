@@ -853,14 +853,14 @@
                     </div>
                     <div class="spts-toggles" id="sptsToggles">
                         <div class="spts-toggle-row" id="sptsWidgetToggleRow">
-                            <input type="checkbox" id="sptsWidgetToggle" checked>
+                            <input type="checkbox" id="sptsWidgetToggle">
                             <label for="sptsWidgetToggle">
                                 <span class="spts-toggle-title">Developer widget</span>
                                 <span class="spts-toggle-desc">Keep this helper visible on the site</span>
                             </label>
                         </div>
                         <div class="spts-toggle-row spts-toggle-row--child" id="sptsStripToggleRow">
-                            <input type="checkbox" id="sptsStripToggle" checked>
+                            <input type="checkbox" id="sptsStripToggle">
                             <label for="sptsStripToggle">
                                 <span class="spts-toggle-title">Promo strip</span>
                                 <span class="spts-toggle-desc">Show the scrolling offer inside the widget</span>
@@ -1010,7 +1010,11 @@
     const WIDGET_POSITION_KEY = 'sptsWidgetPosition';
 
     function isStripHidden() {
-        try { return localStorage.getItem(STRIP_HIDE_KEY) === '1'; } catch { return false; }
+        try {
+            const val = localStorage.getItem(STRIP_HIDE_KEY);
+            if (val === null) return true; // default: hidden until the user opts in
+            return val === '1';
+        } catch { return true; }
     }
 
     function setStripHidden(hidden) {
@@ -1079,7 +1083,11 @@
     }
 
     function isMinimized() {
-        try { return localStorage.getItem(WIDGET_MINIMIZE_KEY) === '1'; } catch { return false; }
+        try {
+            const val = localStorage.getItem(WIDGET_MINIMIZE_KEY);
+            if (val === null) return true; // default: minimized until the user chooses to activate it
+            return val === '1';
+        } catch { return true; }
     }
 
     function isMinimizedSessionHidden() {
