@@ -1092,8 +1092,7 @@
 
     function setMinimized(minimized) {
         try {
-            if (minimized) localStorage.setItem(WIDGET_MINIMIZE_KEY, '1');
-            else localStorage.removeItem(WIDGET_MINIMIZE_KEY);
+            localStorage.setItem(WIDGET_MINIMIZE_KEY, minimized ? '1' : '0');
         } catch {}
         applyWidgetVisibility();
     }
